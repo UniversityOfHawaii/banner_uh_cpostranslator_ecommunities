@@ -1,0 +1,189 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------------------------#
+#
+# File Name:   prune_logs.shl (cloned from banner_uh_banapi/bin/prune_logs.shl)
+# Author(s):   Sammy Lee          <sammy@hawaii.edu>
+# Created:     12-DEC-2018
+# Version:     1.0
+#
+#-------------------------------------------------------------------------------------------------#
+#
+# Purpose:     Script to prune logs
+#
+#-------------------------------------------------------------------------------------------------#
+#
+# Audit Log 1.0
+#
+#    1. Initial release of the script.                                              sammy  08-MAY-2019
+#
+# End Audit Log 1.0
+#
+#-------------------------------------------------------------------------------------------------#
+
+# Where script lives, Application ID, and which jar file to use.
+APP_HOME="/home/banner/cpos"
+
+# Age of files to remove, default is +60 ~ anything over 60 days is removed.
+days="+60"
+#
+# No more configuration needed past here
+#
+
+#
+# Function "usage" will display the inputs and usage of the script.
+#
+usage()
+{
+  echo "================ Banner API Prune Script ================"
+  echo " Removes Banner API log files that are older than 3 months."
+  echo " "
+  echo "   Usage: bash prune_logs"
+  echo " "
+  echo "========================================================="
+}
+
+if [ $# -gt 0 ]; then
+   usage
+   exit 1
+fi
+
+
+# Directory setup
+LOG_HOME="${APP_HOME}/logs"
+
+if ! [ -d "${LOG_HOME}" ] ; then
+    echo " "
+    echo " ERROR: Log directory does not exist: ${LOG_HOME}"
+    echo " "
+    exit 1
+fi
+
+#  Script Execution Time
+current_run=`date '+%Y%m%d-%H%M'`
+run_date=$(date)
+
+
+
+# Log generation
+logdate=`date +%Y%m%d-%H%M%S`
+logdir="${LOG_HOME}/"`date +%Y/%m`
+
+if ! [ -d "${logdir}" ] ; then
+    mkdir -vp "${logdir}"
+fi
+
+LOG="${logdir}/apiprune_${logdate}.log"
+ERR="${logdir}/apiprune_${logdate}.err"
+
+PURGEFILES="${logdir}/apiprune_file_list_${logdate}.lis"
+PURGEDIRS="${logdir}/apiprune_directory_list_${logdate}.lis"
+
+
+
+StartTime=`date`
+
+echo "========================================================================="
+echo "Starting ${0} at: ${StartTime}"
+echo "Log information at:"
+echo "   ${LOG}"
+echo "   ${ERR}"
+echo " "
+echo "========================================================================="       >  "${LOG}" 2>  "${ERR}"
+echo "Starting ${0} at: ${StartTime}"                                                  >> "${LOG}" 2>> "${ERR}"
+echo "Log information at:"                                                             >> "${LOG}" 2>> "${ERR}"
+echo "   ${LOG}"                                                                       >> "${LOG}" 2>> "${ERR}"
+echo "   ${ERR}"                                                                       >> "${LOG}" 2>> "${ERR}"
+echo " "                                                                               >> "${LOG}" 2>> "${ERR}"
+echo "===================================================================="            >> "${LOG}" 2>> "${ERR}"
+echo "Searching for files that are older than ${days} days"                            >> "${LOG}" 2>> "${ERR}"
+echo "===================================================================="            >> "${LOG}" 2>> "${ERR}"
+echo " "                                                                               >> "${LOG}" 2>> "${ERR}"
+
+#
+# Find files that are older than specified days, save it to a file for processing, and iterate
+# through list and remove the file.
+#
+find "${LOG_HOME}" \( ! -name ".gitignore" -type f \) -a \( -atime "${days}" -o -mtime "${days}"  \) -print > "${PURGEFILES}"
+
+fileCount=$(stat -c '%s' "${PURGEFILES}")
+if [[ ${fileCount} -gt 0 ]]; then
+    
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+    echo " Found files to purge..."                                                    >> "${LOG}" 2>> "${ERR}"
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+
+    while read -r aFile; do 
+        rm -v "${aFile}"                                                               >> "${LOG}" 2>> "${ERR}"
+#       echo "  Removing : ${aFile}"                                                   >> "${LOG}" 2>> "${ERR}"
+    done < "${PURGEFILES}"
+
+else
+
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+    echo " No files to purge..."                                                       >> "${LOG}" 2>> "${ERR}"
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+
+fi  
+
+#
+# Find directories that are empty, save it to a file for processing, and iterate
+# through list and remove the directories.
+#
+find "${LOG_HOME}" -mindepth 1 -type d -empty -print > "${PURGEDIRS}"
+
+dirCount=$(stat -c '%s' "${PURGEDIRS}")
+if [[ $dirCount -gt 0 ]]; then
+
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+    echo " Found directories to purge..."                                              >> "${LOG}" 2>> "${ERR}"
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+
+    while read -r aDir; do 
+        rmdir -v "${aDir}"                                                             >> "${LOG}" 2>> "${ERR}"
+#       echo "  Removing : ${aDir}"                                                    >> "${LOG}" 2>> "${ERR}"
+    done < "${PURGEDIRS}"
+
+else
+
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+    echo " No directories to purge..."                                                 >> "${LOG}" 2>> "${ERR}"
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+
+fi  
+
+
+echo " "                                                                               >> "${LOG}" 2>> "${ERR}"
+echo "Checking for errors"                                                             >> "${LOG}" 2>> "${ERR}"
+echo " "                                                                               >> "${LOG}" 2>> "${ERR}"
+errCnt=$(stat -c '%s' "${ERR}")
+if [[ ${errCnt} -gt 0 ]]; then
+
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+    echo " ERROR: Unknown errors encountered while processing:"                        >> "${LOG}" 2>> "${ERR}"
+    echo " "                                                                           >> "${LOG}" 2>> "${ERR}"
+
+    errCnt=0
+    while read aLine; do
+        let errCnt++
+        echo "  ${errCnt} : ${aLine}"                                                  >> "${LOG}" 2>> "${ERR}"
+    done < "${ERR}"
+else
+    echo " No errors encountered"                                                      >> "${LOG}" 2>> "${ERR}"
+fi
+
+endTime=`date`
+echo " "                                                                               >> "${LOG}" 2>> "${ERR}"
+echo "======================================================================"          >> "${LOG}" 2>> "${ERR}"
+echo "  Pruning of logs completed..."                                                  >> "${LOG}" 2>> "${ERR}"
+echo "    Start Time : ${StartTime}"                                                   >> "${LOG}" 2>> "${ERR}"
+echo "    End Time   : ${endTime}"                                                     >> "${LOG}" 2>> "${ERR}"
+
+echo " "
+echo "======================================================================"
+echo "  Pruning of logs completed..."
+echo "    Start Time : ${StartTime}"
+echo "    End Time   : ${endTime}"
+echo " "
+
+#--------------------------------------------------------------------------------------------------
+# EOF: prune_logs

@@ -1,0 +1,138 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------------------------#
+#
+# File Name:   app.shl (cloned from banner_uh_banapi/bin/app.shl)
+# Author(s):   Sammy Lee          <sammy@hawaii.edu>
+# Created:     08-MAY-2019
+# Version:     1.0
+#
+#-------------------------------------------------------------------------------------------------#
+#
+# Purpose:     Script to handle the starting and stopping the CPOS controller
+#
+# Notes:       Based on the app.sh script that controls the Admin Pages and Application Navigator
+#              Tomcat instances.
+#
+#-------------------------------------------------------------------------------------------------#
+#
+# Audit Log 1.0
+#
+#    1. Initial release of the script.                                              sammy  08-MAY-2019
+#
+# End Audit Log 1.0
+#
+#-------------------------------------------------------------------------------------------------#
+#
+
+# Define which Java to use
+PATH=/usr/java/jdk1.8.0_172-amd64/bin:$PATH
+export PATH
+
+# Where script lives, Application ID, and which jar file to use.
+APP_HOME="/home/banner/cpos_dev"
+APP_ID="BANDEV_CPOS"
+APP_JAR="cpos_translator-1.0.jar"
+
+#
+# No more configuration needed past here
+#
+APP_ID_ARG="-DName=${APP_ID}"
+APP_PS="Name=${APP_ID}"
+
+cp=.
+
+# Obtain the PID via searching for the APP_ID
+tc_pid() {
+    TC_PID=$(pgrep -fl "${APP_PS}"| awk '{print $1}')
+}
+
+# Obtain the status of the app via the PID
+tc_status() {
+    tc_pid
+    if [ ! -z "${TC_PID}" ]; then
+        ps -fp "${TC_PID}" | cat
+        echo
+        lsof -Pp "${TC_PID}" | grep LISTEN
+    else
+        echo "Not running"
+    fi
+}
+
+# Stop servers
+tc_stop() {
+    tc_pid
+    if [ ! -z "${TC_PID}" ]; then
+        kill -15 "${TC_PID}"
+        sleep 3
+    fi
+
+    # Make sure it's stopped
+    tc_pid
+    if [ ! -z "${TC_PID}" ]; then
+        kill -9 "${TC_PID}"
+        sleep 1
+    fi
+}
+
+# Archive previous log files
+rotate_logs() {
+    cd "${APP_HOME}/logs" ||  echo "Can't cd to ${APP_HOME}/logs"
+    LOG_DATE_DIR=$(date '+%Y-%m-%d-%H:%M')
+    if [ ! -d "${LOG_DATE_DIR}" ]; then
+        mkdir "${LOG_DATE_DIR}"
+    fi
+    if [ -d "${LOG_DATE_DIR}" ]; then
+        mv -v ./*.log "${LOG_DATE_DIR}"
+#       mv -v ./*.out "${LOG_DATE_DIR}"
+    else
+        echo "Couldn't create ${LOG_DATE_DIR}"
+    fi
+}
+
+
+# Determine what action to do
+case "${1}" in
+    start)
+    cd "${APP_HOME}" ||  echo "Can't cd to ${APP_HOME}"
+    if [[ -f "nohup.out" ]] ; then
+        rm -v nohup.out
+    fi
+nohup java -jar ${APP_JAR} --spring.config.location=config/application.properties,config/oracle.properties,log4j2.xml ${APP_ID_ARG} &
+ps -u ${USER} -f
+sleep 2
+ps -u ${USER} -f
+more nohup.out
+
+    ;;
+    stop)
+        tc_stop
+        rotate_logs
+
+    ;;
+    restart)
+        echo "Stopping..."
+        tc_stop
+        rotate_logs
+        tc_status
+        echo "Waiting 10 seconds..."
+        sleep 10
+        echo "Restarting..."
+
+        cd "${APP_HOME}" ||  echo "Can't cd to ${APP_HOME}"
+
+        if [[ -f "nohup.out" ]] ; then
+            rm -v nohup.out
+        fi
+nohup java -jar ${APP_JAR} --spring.config.location=config/application.properties,config/oracle.properties,log4j2.xml ${APP_ID_ARG} &
+ps -u ${USER} -f
+sleep 2
+ps -u ${USER} -f
+more nohup.out
+
+    ;;
+    status)
+        tc_status
+    ;;
+    *)
+        echo "Usage: ${0} { start | stop | restart | status }"
+esac
