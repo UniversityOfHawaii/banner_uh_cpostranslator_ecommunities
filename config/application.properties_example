@@ -1,0 +1,27 @@
+#
+# Port to monitor embedded Tomcat will monitor 
+server.port=7834
+#
+# URL path to monitor - what URL the Tomcat will respond to
+server.servlet.contextPath=/cpos/v1
+#
+#
+# Rest API credentials for testing account
+rest.user=<username>
+rest.password=<password>
+#
+# Logging configuration
+logging.config=config/log4j2.xml
+#
+# STAR connection details - External Degree Audit System
+#      star.url example: https://<DEGREE-ADUIT-URL.edu:<PORT>/<PATH-TO-URL>
+star.user=<USERNAME>
+star.cred=<USERCRED>
+star.url=<star.url>
+#
+# Acuator End Point Values
+#
+info.app.name=University of Hawaii Banner Course Program of Study (CPOS) Translator
+info.app.description=Webservices to interface between STAR and Banner SFPCPOS Job Submission program
+info.app.version=1
+info.app.database=BANDEV

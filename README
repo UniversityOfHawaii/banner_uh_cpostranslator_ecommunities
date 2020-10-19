@@ -1,0 +1,107 @@
+
+                                        UNIVERSITY OF HAWAII
+                                           BANNER CENTRAL
+                                           CPOS TRANSLATOR
+
+PURPOSE:
+
+    The Course Program Of Study (CPOS) Translator allows Banner to do work with an
+    external degree audit system in lieu of Degree Works. It does this by receiving
+    the RESTful request from the SFPCPOS process and acts as an intermediary between
+    UH STAR Degree Audit.  
+
+HOW TO CONFIGURE:
+
+    There are three files to configure in the D:\cpostranslator\config directory :    
+        application.properties_example  : Copy this file and rename to:
+                                               application.properties 
+                                          Modify which port to monitor, URL 
+                                          location of the external degree system,
+                                          and update the Actuator information endpoints.
+
+        log4j2.xml                      : Adjust the logging format and where logs are
+                                          written to.
+
+        oracle.properties               : ** OPTIONAL ** If needed, this is where
+                                          connection strings and credentials would go
+                                          if using a database connection to pull data
+                                          back.
+
+    Banner Configuration:
+
+        Create an entry on STVREST for the name of your external system. This MAY have
+        to be done via backend SQL as there is not page to interact with this table.
+
+        Create an entry on SOAREST with the new entry above.
+
+        Enter the URL, user, and password as entered in the application.properties file
+        for rest.user and rest.password
+
+HOW TO COMPILE:
+
+    This is a Spring Boot Web and Maven project. To compile the program, navigate to
+    the main directory and issue the following commands:
+
+        D:\cpostranslator > mvn clean          # Cleans the the Maven workspace
+        D:\cpostranslator > mvn compile        # Compiles all of the Java code
+        D:\cpostranslator > mvn package        # Creates the runnable JAR file that
+                                                 includes all necessary files and
+                                                 an embedded Tomcat server.
+
+HOW TO RUN:
+
+    Local workstation:
+
+        Once compiled, start the program via:
+            D:\cpostranslator> java -jar target\cpostranslator-1.0.jar
+
+        In a browser or Postman, use the following ( port is defined in
+        application.properties ) :
+            GET  http://localhost:<PORT>/actuator/info
+            GET  http://localhost:<PORT>/actuator/health
+            POST http://localhost:<PORT>/runAudit?campus=<VPDI_CODE>
+
+    Web Server:
+
+        Once compiled, take the resulting JAR file at:
+            D:\cpostranslator\target\cpostranslator-1.0.jar
+
+        SFTP the JAR file to the target server that is fronted by a 
+        webserver: Apache, Nginx, etc. On the target server, update the "app.shl" script
+        with:
+            * The path to the Java version to use
+            * APP_HOME - Where the CPOS Translator is loaded on the server
+            * APP_ID   - ID to tag the process with
+            * APP_JAR  - Which version of the compiled JAR file to use.
+
+
+        Launch the self contained application via the start and stop script located
+        in the "bin" directory:
+
+            /path/to/cpostranslator $ bin/app.shl start
+            /path/to/cpostranslator $ bin/app.shl stop
+            /path/to/cpostranslator $ bin/app.shl restart
+            /path/to/cpostranslator $ bin/app.shl status
+
+        In a browser of postman, use the following, where port is defined in application.properties:
+            GET  https://server.institution.edu:<PORT>/actuator/info
+            GET  https://server.institution.edu:<PORT>/actuator/health
+            POST https://server.institution.edu:<PORT>/runAudit?campus=<VPDI_CODE>
+
+
+    Prune Logs:
+
+        In the \path\to\cpostranslator\bin\prune_logs.shl script, update the APP_HOME 
+        variable and schedule this process to run every day to remove files older than
+        the specified amount of days. Default is to remove anything over 60 days.
+
+OTHER INFORMATION:
+
+    Web Pages to review to work with Spring Boot Applications:
+
+    * Building a RESTful Web Service - https://spring.io/guides/gs/rest-service/ 
+    * Serving Web Content with Spring MVC - https://spring.io/guides/gs/serving-web-content/ 
+    * Building REST services with Spring - https://spring.io/guides/tutorials/bookmarks/ 
+    * Securing a Web Application - https://spring.io/guides/gs/securing-web/ 
+    * Building a RESTful Web Service with Spring Boot Actuator - https://spring.io/guides/gs/actuator-service/ 
+    * Accessing Relational Data using JDBC with Spring - https://spring.io/guides/gs/relational-data-access/

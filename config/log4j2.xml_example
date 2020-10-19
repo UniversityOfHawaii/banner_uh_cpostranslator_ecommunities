@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+  <Appenders>
+    <!-- Console Appender -->
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{yyyy-MMM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n" />
+    </Console>
+
+		<RollingFile name="SystemMsg" fileName="logs/systemMsg.log" 
+	             filePattern="logs/systemMsg-%d{yyyy-MM-dd}-%i.log">
+	    <PatternLayout>
+<!--	        <Pattern>${LOG_PATTERN}</Pattern> -->
+	        <Pattern>[%d{ISO8601}] [%p] [%c]:%x %m%n</Pattern>
+	    </PatternLayout>
+	    <Policies>
+	        <SizeBasedTriggeringPolicy size="10MB" />
+	    </Policies>
+	    <DefaultRolloverStrategy max="10"/>
+		</RollingFile>
+
+    <!-- Rolling File Appender -->
+		<RollingFile name="FileAppender" fileName="logs/cpos.log" 
+	             filePattern="logs/springrest-%d{yyyy-MM-dd}-%i.log">
+	    <PatternLayout>
+<!-- 		    <Pattern>[%d{yyyy-MM-dd HH:mm:ss,SSS}] [%level{WARN=W, DEBUG=D, ERROR=E, TRACE=T, INFO=I}] [%c{1.1.*}:%line] %m%n</Pattern> -->
+		    <Pattern>[%d{yyyy-MM-dd HH:mm:ss,SSS}] [%level{WARN=W, DEBUG=D, ERROR=E, TRACE=T, INFO=I}] [%c{1.1.*}:%line] [%ex] %m%n</Pattern>
+ 	    </PatternLayout>
+	    <Policies>
+	        <SizeBasedTriggeringPolicy size="10MB" />
+	    </Policies>
+	    <DefaultRolloverStrategy max="10"/>
+		</RollingFile>
+    
+  </Appenders>
+
+  <Loggers>
+    <!-- Log everything in custom package -->
+    <Logger name="edu.hawaii" level="debug" additivity="false">
+      <AppenderRef ref="FileAppender" />
+    </Logger>
+    <!-- Log everything in Spring Boot -->
+    <Logger name="org.springframework.boot" level="info" additivity="false">
+      <AppenderRef ref="SystemMsg" />
+      <AppenderRef ref="Console" />
+    </Logger>
+
+    <!-- Log everything in Spring Core -->
+    <Logger name="org.springframework.core" level="debug" additivity="false">
+      <AppenderRef ref="SystemMsg" />
+    </Logger>
+
+		<!-- Log errors in everything -->
+    <Root level="error">
+      <AppenderRef ref="SystemMsg" />
+      <AppenderRef ref="Console" />
+      <AppenderRef ref="FileAppender" />
+    </Root>
+
+  </Loggers>
+</Configuration>
