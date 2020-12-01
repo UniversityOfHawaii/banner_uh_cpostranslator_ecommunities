@@ -1,6 +1,6 @@
 package edu.hawaii.banner.cpos;
 
-//object that represents the classes portion of student's audit result
+//object that represents the class portion of student's audit result
 public class ClassInfo {
 
 	public String getSubj() {

@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 //It's used during startup - to continue or halt startup
 @Component
 public class ContextRefreshedListener implements ApplicationListener<ContextRefreshedEvent>{
-	//  STAR connection details
-	@Value("${star.user}")
+  //  STAR connection details
+  @Value("${star.user}")
   String starUser;
   @Value("${star.cred}")
   String starCred;

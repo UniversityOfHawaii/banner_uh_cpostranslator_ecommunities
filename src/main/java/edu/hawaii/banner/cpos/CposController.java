@@ -65,7 +65,7 @@ public class CposController {
 	 *          - campus we are running for
 	 * @param term
 	 *          - array of terms to process
-	 * @return - xml representation of a student's audit result from STAR
+	 * @return - json representation of a student's audit result from STAR
 	 * @throws Exception
 	 */
 	@RequestMapping(value = "/runAudit", method = RequestMethod.POST, produces = "application/json")
@@ -84,6 +84,7 @@ public class CposController {
 		}
 
 		logger.debug("entering runAudit, campus: " + campus + ", terms: " + sbTerm);
+		logger.debug("starUrl: " + this.starUrl + ", starUser: " + this.starUser);
 
 		String auditId = null;
 		String freezeDate = freezeDateSdf.format(new Date());
@@ -115,6 +116,7 @@ public class CposController {
 
 		// call our own controller for now as a POC
 		// http://localhost:8081/cpos/StarAuditTest?bannerId=12345678&homeCampus=KAP&degree=AS&major=BIOL&minor=&conc=&catyr=201930
+
 		ArrayList<String> starAuditJsonList = new ArrayList<String>();
 
 		// call STAR for each term. we will then merge the results into one that
@@ -123,7 +125,12 @@ public class CposController {
 		JSONObject starAuditObject = new JSONObject();
 		String starAuditJson = null;
 		for (int i = 0; i < term.length; i++) {
-			starAuditJson = callStarAudit(starUrl, starUser, starCred, studentInfo, campus, term[i]);
+			starAuditJson = callStarAudit(this.starUrl, 
+			                              this.starUser,
+			                              this.starCred,
+			                              studentInfo,
+			                              campus,
+			                              term[i]);
 			if (starAuditJson != null) {
 				if (starAuditJson.trim().length() > 0) {
 					starAuditObject = (JSONObject) parser.parse(starAuditJson);
@@ -572,9 +579,16 @@ public class CposController {
 
 		StringBuffer response = new StringBuffer();
 		try {
-			String starUrl = "https://star.degree.audit/api/classcount" + "?institution=" + campus
-					+ "&TermCode=" + termCode + "&BannerId=" + bannerId + "&SecurityKey=" + cred;
-			URL url = new URL(starUrl);
+				String fullStarUrl = sUrl
+						+ "?institution=" + campus
+						+ "&TermCode=" + termCode
+						+ "&BannerId=" + bannerId
+						+ "&SecurityKey=" + cred ;
+				URL url = new URL(fullStarUrl);
+						
+				//actual call to the degree audit is something like this:
+				// https://degreeaudit.institution.edu/api/classcount?institution=<MEP>&TermCode=201930&BannerId=123456789&SecurityKey=<SecurityKey>
+
 
 			java.net.HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
@@ -610,11 +624,13 @@ public class CposController {
 	// this is so we can access some of the student data easily
 	private JSONObject parseRequestXml(Document document) {
 		logger.debug("entering parseRequestXml");
+		logger.debug("incoming banner xml:");
+		logger.debug(document.asXML());
+		
 		String auditDesc = null;
 		String bannerId = null;
 		String degree = null;
-		// program is something like: BS-BIOL-BMD1, when composing response, it'll
-		// be element "degree"
+		// program is something like: BS-BIOL-BMD1, when composing response, it'll be element "degree"
 		String program = null;
 		// school is level
 		String school = null;
@@ -677,17 +693,18 @@ public class CposController {
 	}
 
 	// For testing only
-	// this method mimicks what STAR audit does and returns a temporary json
-	// object
+	// this method mimicks what STAR audit does and returns a temporary json object
 	// that we can test
 	@RequestMapping(value = "/StarAuditTest", method = RequestMethod.GET, produces = "application/json")
 	public ResponseEntity<StarAuditResult> getStarAuditResult(
 			@RequestParam(value = "bannerId") String bannerId,
 			@RequestParam(value = "homeCampus", required = false) String homeCampus,
-			@RequestParam(value = "degree") String degree, @RequestParam(value = "major") String major,
+			@RequestParam(value = "degree") String degree,
+			@RequestParam(value = "major") String major,
 			@RequestParam(value = "minor", required = false) String minor,
 			@RequestParam(value = "conc", required = false) String conc,
-			@RequestParam(value = "catyr") String catyr) {
+			@RequestParam(value = "catyr") String catyr)
+	{
 
 		logger.debug("entering getStarAuditResult, bannerId: " + bannerId);
 		logger.debug("entering getStarAuditResult, homeCampus: " + homeCampus);
@@ -698,8 +715,16 @@ public class CposController {
 		ResponseEntity<StarAuditResult> respBody;
 
 		List<ClassInfo> classInfoList = buildClassInfoList();
-		StarAuditResult starAuditResult = buildStarAuditResult(classInfoList, bannerId, homeCampus,
-				degree, major, minor, conc, catyr);
+		StarAuditResult starAuditResult = buildStarAuditResult(
+			classInfoList,
+			bannerId,
+			homeCampus,
+			degree,
+			major,
+			minor,
+			conc,
+			catyr
+		);
 
 		boolean hasError = false;
 		if (!hasError) {

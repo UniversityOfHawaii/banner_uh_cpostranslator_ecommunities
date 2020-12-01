@@ -23,16 +23,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
       http
         .authorizeRequests()
+
+// Request CPOS translations
             .antMatchers("/student/**").access("hasRole(\"USER\") or hasRole(\"ADMIN\")")
+
 // Actuator Checks - Allow for anyone with firewall access to this points
             .antMatchers("/actuator/health").permitAll()
             .antMatchers("/actuator/info").permitAll()
+
 // Default everywhere else to only ADMINS
             .antMatchers("/**").access("hasRole(\"ADMIN\")")
         .anyRequest().authenticated()
         .and()
         .httpBasic();
       http.csrf().disable();
+  
   }
 
 	  @Bean

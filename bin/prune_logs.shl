@@ -1,8 +1,7 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------------------------#
 #
-# File Name:   prune_logs.shl (cloned from banner_uh_banapi/bin/prune_logs.shl)
-# Author(s):   Sammy Lee          <sammy@hawaii.edu>
+# File Name:   prune_logs.shl
 # Created:     12-DEC-2018
 # Version:     1.0
 #
@@ -14,7 +13,7 @@
 #
 # Audit Log 1.0
 #
-#    1. Initial release of the script.                                              sammy  08-MAY-2019
+#    1. Initial release of the script.                                               SL 08-MAY-2019
 #
 # End Audit Log 1.0
 #
@@ -35,7 +34,7 @@ days="+60"
 usage()
 {
   echo "================ Banner API Prune Script ================"
-  echo " Removes Banner API log files that are older than 3 months."
+  echo " Removes Banner API log files that are older than ${days} days."
   echo " "
   echo "   Usage: bash prune_logs"
   echo " "
