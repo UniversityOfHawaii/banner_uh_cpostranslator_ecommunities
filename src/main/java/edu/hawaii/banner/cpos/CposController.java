@@ -575,19 +575,30 @@ public class CposController {
 		logger.debug("campus is: " + campus);
 
 		String USER_AGENT = "Mozilla/5.0";
+
 		String bannerId = (String) studentInfo.get("bannerId");
+		String degree = (String) studentInfo.get("degree");
+		String school = (String) studentInfo.get("school");
+		String program = (String) studentInfo.get("program");
+		String catyr = (String) studentInfo.get("catyr");
 
 		StringBuffer response = new StringBuffer();
+
 		try {
 				String fullStarUrl = sUrl
 						+ "?institution=" + campus
 						+ "&TermCode=" + termCode
 						+ "&BannerId=" + bannerId
-						+ "&SecurityKey=" + cred ;
+						+ "&School=" + school 
+						+ "&Degree=" + degree 
+						+ "&Program=" + program 
+						+ "&Catyr=" + catyr
+						+ "&SecurityKey=" + cred 
+						;
 				URL url = new URL(fullStarUrl);
 						
 				//actual call to the degree audit is something like this:
-				// https://degreeaudit.institution.edu/api/classcount?institution=<MEP>&TermCode=201930&BannerId=123456789&SecurityKey=<SecurityKey>
+				// https://degreeaudit.institution.edu/api/classcount?institution=<MEP>&TermCode=201930&BannerId=123456789&School=UG&Degree=AS&Program=AS-NURS&Catyr=201910&SecurityKey=<SecurityKey>
 
 
 			java.net.HttpURLConnection con = (HttpURLConnection) url.openConnection();
