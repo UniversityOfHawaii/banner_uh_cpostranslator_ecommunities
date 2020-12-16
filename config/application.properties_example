@@ -1,5 +1,5 @@
 #
-# Port to monitor embedded Tomcat will monitor 
+# Port embedded Tomcat will monitor 
 server.port=7834
 #
 # URL path to monitor - what URL the Tomcat will respond to
@@ -23,5 +23,5 @@ star.url=<star.url>
 #
 info.app.name=University of Hawaii Banner Course Program of Study (CPOS) Translator
 info.app.description=Webservices to interface between STAR and Banner SFPCPOS Job Submission program
-info.app.version=1
+info.app.version=1.1.1
 info.app.database=BANDEV

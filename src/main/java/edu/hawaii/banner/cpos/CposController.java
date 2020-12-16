@@ -125,12 +125,14 @@ public class CposController {
 		JSONObject starAuditObject = new JSONObject();
 		String starAuditJson = null;
 		for (int i = 0; i < term.length; i++) {
-			starAuditJson = callStarAudit(this.starUrl, 
-			                              this.starUser,
-			                              this.starCred,
-			                              studentInfo,
-			                              campus,
-			                              term[i]);
+			starAuditJson = callStarAudit(
+				this.starUrl, 
+				this.starUser,
+				this.starCred,
+				studentInfo,
+				campus,
+				term[i]);
+
 			if (starAuditJson != null) {
 				if (starAuditJson.trim().length() > 0) {
 					starAuditObject = (JSONObject) parser.parse(starAuditJson);
@@ -577,22 +579,22 @@ public class CposController {
 		String USER_AGENT = "Mozilla/5.0";
 
 		String bannerId = (String) studentInfo.get("bannerId");
-		String degree = (String) studentInfo.get("degree");
-		String school = (String) studentInfo.get("school");
-		String program = (String) studentInfo.get("program");
-		String catyr = (String) studentInfo.get("catyr");
+		String degree   = (String) studentInfo.get("degree");
+		String school   = (String) studentInfo.get("school");
+		String program  = (String) studentInfo.get("program");
+		String catyr    = (String) studentInfo.get("catyr");
 
 		StringBuffer response = new StringBuffer();
 
 		try {
 				String fullStarUrl = sUrl
 						+ "?institution=" + campus
-						+ "&TermCode=" + termCode
-						+ "&BannerId=" + bannerId
-						+ "&School=" + school 
-						+ "&Degree=" + degree 
-						+ "&Program=" + program 
-						+ "&Catyr=" + catyr
+						+ "&TermCode="    + termCode
+						+ "&BannerId="    + bannerId
+						+ "&School="      + school 
+						+ "&Degree="      + degree 
+						+ "&Program="     + program 
+						+ "&Catyr="       + catyr
 						+ "&SecurityKey=" + cred 
 						;
 				URL url = new URL(fullStarUrl);
