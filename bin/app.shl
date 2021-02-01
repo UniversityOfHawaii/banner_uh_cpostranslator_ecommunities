@@ -2,8 +2,6 @@
 #-------------------------------------------------------------------------------------------------#
 #
 # File Name:   app.shl
-# Created:     08-MAY-2019
-# Version:     1.0
 #
 #-------------------------------------------------------------------------------------------------#
 #
@@ -17,6 +15,8 @@
 # Audit Log 1.0
 #
 #    1. Initial release of the script.                                               SL 08-MAY-2019
+#    2. Updated version to 1.2.0                                                    KAH 18-DEC-2020
+#    3. Removed oracle.properties to the configuration passed in, not used, left exmple command.
 #
 # End Audit Log 1.0
 #
@@ -30,7 +30,7 @@ export PATH
 # Where script lives, Application ID, and which jar file to use.
 APP_HOME="/home/banner/cpos_dev"
 APP_ID="BANDEV_CPOS"
-APP_JAR="cpos_translator-1.0.jar"
+APP_JAR="cpostranslator-1.2.0.jar"
 
 #
 # No more configuration needed past here
@@ -82,6 +82,7 @@ rotate_logs() {
     fi
     if [ -d "${LOG_DATE_DIR}" ]; then
         mv -v ./*.log "${LOG_DATE_DIR}"
+        mv -v ./*.* "${LOG_DATE_DIR}"
 #       mv -v ./*.out "${LOG_DATE_DIR}"
     else
         echo "Couldn't create ${LOG_DATE_DIR}"
@@ -93,14 +94,13 @@ rotate_logs() {
 case "${1}" in
     start)
     cd "${APP_HOME}" ||  echo "Can't cd to ${APP_HOME}"
+
     if [[ -f "nohup.out" ]] ; then
         rm -v nohup.out
     fi
-nohup java -jar ${APP_JAR} --spring.config.location=config/application.properties,config/oracle.properties,log4j2.xml ${APP_ID_ARG} &
-ps -u ${USER} -f
-sleep 2
-ps -u ${USER} -f
-more nohup.out
+
+        nohup java -jar ${APP_JAR} --spring.config.location=config/application.properties ${APP_ID_ARG} &
+		sleep 2
 
     ;;
     stop)
@@ -122,11 +122,9 @@ more nohup.out
         if [[ -f "nohup.out" ]] ; then
             rm -v nohup.out
         fi
-nohup java -jar ${APP_JAR} --spring.config.location=config/application.properties,config/oracle.properties,log4j2.xml ${APP_ID_ARG} &
-ps -u ${USER} -f
-sleep 2
-ps -u ${USER} -f
-more nohup.out
+
+        nohup java -jar ${APP_JAR} --spring.config.location=config/application.properties ${APP_ID_ARG} &
+		sleep 2
 
     ;;
     status)

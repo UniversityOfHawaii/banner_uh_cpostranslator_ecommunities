@@ -36,7 +36,6 @@ hs_err_pid*
 /.classpath
 /.settings
 /.project
-/.gitignore
 /workarea/
 /jdoc
 /tmp

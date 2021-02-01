@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+# Clears out logs, compiles, packages, and runs CPOS in a BASH environment
+#
+
+CFGDIR="config"
+LOGDIR="logs"
+ARCHIVE=`date +%Y%m%d-%H%M`
+
+
+echo ""
+echo "===================================================================="
+echo "          Checking required directories..."
+echo "===================================================================="
+echo ""
+#
+if [[ ! -d "${LOGDIR}" ]]; then
+    echo " "
+    echo " ERROR: Directory ${LOGDIR} does not exist"
+    echo " "
+    exit 1
+fi
+#
+if [[ ! -d "${CFGDIR}" ]]; then
+    echo " "
+    echo " ERROR: Directory ${CFGDIR} does not exist"
+    echo " "
+    exit 1
+fi
+#
+echo ""
+echo "===================================================================="
+echo "          Checking required properties files..."
+echo "===================================================================="
+echo ""
+#
+if [[ ! -f "${CFGDIR}/application.properties" ]]; then
+    echo " "
+    echo " ERROR: File ${CFGDIR}/application.properties does not exist"
+    echo " "
+    exit 1
+fi
+#
+if [[ ! -f "${CFGDIR}/log4j2.xml" ]]; then
+    echo " "
+    echo " ERROR: File ${CFGDIR}/log4j2.xml does not exist"
+    echo " "
+    exit 1
+fi
+#
+echo " "
+echo "===================================================================="
+echo "         Removing old log files..."
+echo "===================================================================="
+echo " "
+#
+echo "Archiving to: ${ARCHIVE}"
+#
+mkdir -v "${LOGDIR}/${ARCHIVE}"
+#
+mv -v "${LOGDIR}/*.log" "${LOGDIR}/${ARCHIVE}"
+#
+echo " "
+echo "===================================================================="
+echo "         Building..."
+echo "===================================================================="
+echo " "
+#
+mvn clean
+mvn package
+#
+echo " "
+echo "===================================================================="
+echo "         Starting..."
+echo "===================================================================="
+echo " "
+#
+# Start the jar via the -jar command, pass in the location of all configs
+#
+java -jar target/cpostranslator-1.2.0.jar --spring.config.location=config/application.properties

@@ -23,5 +23,5 @@ star.url=<star.url>
 #
 info.app.name=University of Hawaii Banner Course Program of Study (CPOS) Translator
 info.app.description=Webservices to interface between STAR and Banner SFPCPOS Job Submission program
-info.app.version=1.1.1
+info.app.version=1.2.0
 info.app.database=BANDEV
